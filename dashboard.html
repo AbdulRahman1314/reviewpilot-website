@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ReviewPilot: Owner dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#f5f6f8;--s:#fff;--t:#0f1f3d;--m:#5b6578;--b:#dfe3ea;--p:#0f1f3d;--pt:#fff;--ok:#0b8a5f;--okb:#e6f6ef;--ac:#5b5bd6;--wb:#fff6e0;--wt:#6b4a00;--er:#c2331f;--star:#f2a30f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--s:#131c2e;--t:#eef1f7;--m:#9aa6bd;--b:#26324a;--p:#eef1f7;--pt:#0b1220;--ok:#3ccf98;--okb:#12302a;--ac:#8c8cf0;--wb:#2d2610;--wt:#f1d58a;--er:#ff8a78}}
+:root[data-theme="dark"]{--bg:#0b1220;--s:#131c2e;--t:#eef1f7;--m:#9aa6bd;--b:#26324a;--p:#eef1f7;--pt:#0b1220;--ok:#3ccf98;--okb:#12302a;--ac:#8c8cf0;--wb:#2d2610;--wt:#f1d58a;--er:#ff8a78}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:76px}
+header{background:var(--s);border-bottom:1px solid var(--b);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header b{font-size:16px}header span{font-size:12px;color:var(--m)}
+main{max-width:560px;margin:0 auto;padding:16px}
+h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--m);margin:0 0 16px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:24px}.stat small{color:var(--m);font-size:12.5px}
+.banner{background:var(--wb);color:var(--wt);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+.o{font-weight:400;color:var(--m)}
+input[type=text],input[type=tel],input[type=email],input[type=password]{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.chk{display:flex;gap:10px;font-weight:400;font-size:14px;align-items:flex-start}.chk input{width:20px;height:20px;margin-top:2px;flex:none}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;font:inherit;font-weight:600;border:0;border-radius:10px;padding:13px;cursor:pointer;background:var(--p);color:var(--pt);margin-top:12px}
+.btn.g{background:#0b8a5f;color:#fff}.btn.s{background:transparent;color:var(--t);border:1px solid var(--b)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.err{color:var(--er);font-size:13px;margin-top:6px;min-height:18px}
+.ok{color:var(--ok);font-size:13px;margin-top:6px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--b)}
+.row:first-child{border-top:0}.row small{color:var(--m);display:block;font-size:12.5px}
+.badge{font-size:12px;border-radius:999px;padding:3px 10px;background:var(--okb);color:var(--ok);white-space:nowrap}
+.badge.n{background:var(--bg);color:var(--m);border:1px solid var(--b)}
+.link{word-break:break-all;font-size:13px;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0}
+.empty{text-align:center;color:var(--m);padding:24px 8px}
+.stars{color:var(--star);letter-spacing:2px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--s);border-top:1px solid var(--b);display:flex;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;border:0;font:inherit;font-size:12.5px;color:var(--m);padding:12px 2px;cursor:pointer}
+nav button[aria-current=page]{color:var(--t);font-weight:700;box-shadow:inset 0 2px 0 var(--ac)}
+.sm{font-size:12.5px;color:var(--m)}
+.lnk{background:none;border:0;color:var(--ac);cursor:pointer;padding:6px 0;font:inherit;font-size:12.5px}
+</style>
+</head>
+<body>
+<header><div><b>ReviewPilot</b><br><span id="biz"></span></div><span id="who"></span></header>
+<main id="app"></main>
+<nav id="nav" style="display:none"></nav>
+<script>
+var API = "https://reviewpilot-backend-8tgs.onrender.com";
+var token = null, me = null, view = "home", last = null, wt = null;
+try { token = localStorage.getItem("rp_token"); } catch (e) {}
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function setToken(t){ token = t; try { if (t) localStorage.setItem("rp_token", t); else localStorage.removeItem("rp_token"); } catch (e) {} }
+function api(path, o){
+  o = o || {};
+  var h = {"Content-Type": "application/json"};
+  if (token) h.Authorization = "Bearer " + token;
+  return fetch(API + path, {method: o.method || "GET", headers: h, body: o.body ? JSON.stringify(o.body) : undefined})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){
+      if (!r.ok) { var e = new Error(d.error || "Something went wrong."); e.code = d.code; e.status = r.status; throw e; }
+      return d; }); });
+}
+function busy(){
+  $("app").innerHTML = '<div class="card empty" id="ld">Loading…</div>';
+  clearTimeout(wt);
+  wt = setTimeout(function(){ var l = $("ld"); if (l) l.textContent = "The server is waking up. This can take up to a minute…"; }, 4000);
+}
+function fail(e){
+  if (e.status === 401) { logout(); return; }
+  $("app").innerHTML = '<div class="card empty">' + esc(e.message || "Could not reach the server.") + '<button class="btn s" onclick="render()">Try again</button></div>';
+}
+function logout(){ setToken(null); me = null; $("nav").style.display = "none"; $("biz").textContent = ""; $("who").textContent = ""; authView("login"); }
+
+function authView(mode){
+  var su = mode === "signup";
+  $("app").innerHTML = '<h2>' + (su ? "Create your account" : "Log in") + '</h2><p class="sub">' + (su ? "Set up your store in a minute." : "Welcome back.") + '</p>' +
+  '<form class="card" id="af" novalidate>' +
+  (su ? '<label for="an">Your name</label><input type="text" id="an" autocomplete="name"><label for="ab">Business name</label><input type="text" id="ab">' : '') +
+  '<label for="ae">Email</label><input type="email" id="ae" autocomplete="email">' +
+  '<label for="ap">Password' + (su ? ' <span class="o">(8+ characters)</span>' : '') + '</label><input type="password" id="ap" autocomplete="' + (su ? "new-password" : "current-password") + '">' +
+  '<div class="err" id="ae2" role="alert"></div>' +
+  '<button class="btn" type="submit" id="asb">' + (su ? "Sign up" : "Log in") + '</button></form>' +
+  '<button class="btn s" id="sw">' + (su ? "I already have an account" : "Create a new account") + '</button>' +
+  '<p class="sm" style="text-align:center;margin-top:12px">The first request after a pause can take up to a minute.</p>';
+  $("sw").onclick = function(){ authView(su ? "login" : "signup"); };
+  $("af").onsubmit = function(ev){
+    ev.preventDefault();
+    var b = {email: $("ae").value, password: $("ap").value};
+    if (su) { b.name = $("an").value; b.businessName = $("ab").value; }
+    $("asb").disabled = true; $("ae2").textContent = "";
+    api(su ? "/auth/signup" : "/auth/login", {method: "POST", body: b}).then(function(d){ setToken(d.token); boot(); })
+      .catch(function(e){ $("asb").disabled = false; $("ae2").textContent = e.message; });
+  };
+}
+
+function boot(){
+  if (!token) { authView("login"); return; }
+  busy();
+  api("/me").then(function(m){
+    me = m; $("biz").textContent = m.business.name; $("nav").style.display = "flex"; render();
+  }).catch(function(e){ if (e.status === 401) authView("login"); else fail(e); });
+}
+
+var tabs = [["home","Home"],["new","New request"],["list","Requests"],["fb","Feedback"],["set","Settings"]];
+function nav(){
+  $("nav").innerHTML = tabs.map(function(t){ return '<button data-v="'+t[0]+'"'+(view===t[0]?' aria-current="page"':'')+'>'+t[1]+'</button>'; }).join("");
+  [].forEach.call($("nav").children, function(b){ b.onclick = function(){ view = b.dataset.v; last = null; render(); window.scrollTo(0, 0); }; });
+}
+function render(){ if (!me) return; nav(); ({home: home, "new": newReq, list: list, fb: fb, set: settings})[view](); }
+
+function home(){
+  busy();
+  api("/stats").then(function(s){
+    var avg = s.platformAvgRating ? s.platformAvgRating.toFixed(1) + " / 5" : "No ratings yet";
+    var h = '<h2>Welcome</h2><p class="sub">Add a customer, create a feedback link, and share it on WhatsApp.</p>';
+    if (!me.business.googleReviewUrl) h += '<div class="banner">Add your Google review link in Settings so customers can find your review page.</div>';
+    h += '<div class="grid">' +
+      '<div class="stat"><b>' + s.customers + '</b><small>Customers</small></div>' +
+      '<div class="stat"><b>' + s.requests + '</b><small>Requests created</small></div>' +
+      '<div class="stat"><b>' + s.shared + '</b><small>Shared by you on WhatsApp</small></div>' +
+      '<div class="stat"><b>' + s.responses + '</b><small>Feedback received</small></div>' +
+      '<div class="stat"><b style="font-size:18px;padding:4px 0">' + avg + '</b><small>Average feedback rating (your platform only, not Google)</small></div>' +
+      '<div class="stat"><b>' + s.googleLinkClicks + '</b><small>Google link clicks (not reviews)</small></div></div>';
+    if (!s.requests) h += '<div class="card empty">Your business analytics will appear here after you collect your first customer feedback.</div>';
+    h += '<button class="btn" id="q1">Create feedback request</button>';
+    $("app").innerHTML = h; $("q1").onclick = function(){ view = "new"; render(); };
+  }).catch(fail);
+}
+
+function newReq(){
+  if (last) return done();
+  $("app").innerHTML = '<h2>New feedback request</h2><p class="sub">Fill the customer details, then share the link.</p>' +
+  '<form class="card" id="f" novalidate>' +
+  '<label for="n">Customer name <span class="o">(optional)</span></label><input type="text" id="n" autocomplete="off">' +
+  '<label for="p">Mobile number</label><input type="tel" id="p" inputmode="numeric" placeholder="10-digit Indian number" autocomplete="off">' +
+  '<label for="t">Bill or transaction number <span class="o">(optional)</span></label><input type="text" id="t" autocomplete="off">' +
+  '<label for="i">Product or service <span class="o">(optional)</span></label><input type="text" id="i" autocomplete="off">' +
+  '<label class="chk" style="margin-top:16px"><input type="checkbox" id="c"><span>This customer agreed to receive messages from my store on WhatsApp.</span></label>' +
+  '<div class="err" id="e" role="alert"></div><button class="btn" type="submit" id="sb">Create link</button></form>';
+  $("f").onsubmit = function(ev){
+    ev.preventDefault();
+    var b = {name: $("n").value, phone: $("p").value, consent: $("c").checked, transactionRef: $("t").value, product: $("i").value};
+    $("sb").disabled = true; $("e").textContent = "";
+    function send(force){
+      b.force = force;
+      api("/requests", {method: "POST", body: b}).then(function(d){ last = d; render(); })
+        .catch(function(e){
+          if (e.code === "RECENT" && !force && confirm("This customer got a request in the last 7 days. Create another?")) { send(true); return; }
+          $("sb").disabled = false; $("e").textContent = e.message;
+        });
+    }
+    send(false);
+  };
+}
+function done(){
+  var r = last.request, c = last.customer, name = c.name ? " " + c.name : "";
+  var m = "Hello" + name + ",\n\nThank you for visiting " + me.business.name + ". We would appreciate your honest feedback:\n" + r.link + "\n\nReply STOP if you do not wish to receive further messages from us.";
+  $("app").innerHTML = '<h2>Link ready</h2><p class="sub">Check the message, then send.</p>' +
+  '<div class="card"><div class="sm">Message preview</div><div class="link" style="white-space:pre-wrap">' + esc(m) + '</div>' +
+  '<a class="btn g" id="wa" target="_blank" rel="noopener noreferrer" href="https://wa.me/' + c.phone + '?text=' + encodeURIComponent(m) + '">Open WhatsApp to send</a>' +
+  '<button class="btn s" id="cp">Copy message</button><div class="sm" id="st" style="margin-top:8px" aria-live="polite"></div></div>' +
+  '<button class="btn s" id="nx">Create another</button>';
+  $("wa").onclick = function(){ api("/requests/" + r.id + "/shared", {method: "POST"}).catch(function(){}); $("st").textContent = "Marked as shared. WhatsApp will open and you press send there. Delivery is not tracked yet."; };
+  $("cp").onclick = function(){ try { navigator.clipboard.writeText(m).then(function(){ $("st").textContent = "Message copied."; }, function(){ $("st").textContent = "Could not copy. Select the text above instead."; }); } catch (e) { $("st").textContent = "Could not copy. Select the text above instead."; } };
+  $("nx").onclick = function(){ last = null; render(); };
+}
+
+function list(){
+  busy();
+  api("/requests").then(function(d){
+    var h = '<h2>Requests</h2><p class="sub">Status shows what you did in this app, not WhatsApp delivery.</p>';
+    if (!d.requests.length) { $("app").innerHTML = h + '<div class="card empty">No requests yet. Create your first one.</div>'; return; }
+    h += '<div class="card">' + d.requests.map(function(r){
+      var c = r.customer;
+      var badge = r.answered ? '<span class="badge">Feedback received</span>' : (r.status === "SHARED" ? '<span class="badge n">Shared on WhatsApp</span>' : '<span class="badge n">Link created</span>');
+      return '<div class="row"><div><b>' + esc(c.name || c.phoneMasked) + '</b><small>' + new Date(r.createdAt).toLocaleDateString("en-IN") + (r.transactionRef ? " · Bill " + esc(r.transactionRef) : "") + (c.optedOut ? " · Opted out" : "") + '</small></div>' +
+        '<div style="text-align:right">' + badge + '<br><button class="lnk" data-o="' + esc(c.id) + '" data-v="' + (c.optedOut ? "0" : "1") + '">' + (c.optedOut ? "Allow messages" : "Mark opted out") + '</button></div></div>';
+    }).join("") + '</div>';
+    $("app").innerHTML = h;
+    [].forEach.call(document.querySelectorAll("[data-o]"), function(b){
+      b.onclick = function(){ api("/customers/" + b.dataset.o + "/optout", {method: "PATCH", body: {optedOut: b.dataset.v === "1"}}).then(list).catch(fail); };
+    });
+  }).catch(fail);
+}
+
+function fb(){
+  busy();
+  api("/feedback").then(function(d){
+    var h = '<h2>Customer feedback</h2><p class="sub">What customers wrote on your feedback page. This is not Google reviews.</p>';
+    if (!d.feedback.length) { $("app").innerHTML = h + '<div class="card empty">No feedback yet. It will show here when a customer submits the form.</div>'; return; }
+    h += d.feedback.map(function(f){
+      var s = ""; for (var i = 1; i <= 5; i++) s += i <= f.rating ? "★" : "☆";
+      return '<div class="card"><div class="stars" aria-label="' + f.rating + ' out of 5">' + s + '</div>' +
+        (f.message ? '<p style="margin:8px 0">' + esc(f.message) + '</p>' : '<p class="sm" style="margin:8px 0">No written comment.</p>') +
+        '<div class="sm">' + (f.category ? esc(f.category) + " · " : "") + new Date(f.createdAt).toLocaleDateString("en-IN") + (f.contactOk ? " · OK to contact privately" : "") + '</div></div>';
+    }).join("");
+    $("app").innerHTML = h;
+  }).catch(fail);
+}
+
+function settings(){
+  $("app").innerHTML = '<h2>Settings</h2><p class="sub">' + esc(me.user.email) + '</p>' +
+  '<form class="card" id="sf" novalidate><label for="sn">Business name</label><input type="text" id="sn" value="' + esc(me.business.name) + '">' +
+  '<label for="sg">Google review link <span class="o">(optional)</span></label><input type="text" id="sg" placeholder="https://g.page/r/..." value="' + esc(me.business.googleReviewUrl || "") + '">' +
+  '<p class="sm">In Google Business Profile, open your profile and choose Ask for reviews to copy this link.</p>' +
+  '<div class="err" id="se" role="alert"></div><div class="ok" id="so"></div><button class="btn" type="submit" id="ss">Save</button></form>' +
+  '<button class="btn s" id="lo">Log out</button>';
+  $("sf").onsubmit = function(ev){
+    ev.preventDefault(); $("ss").disabled = true; $("se").textContent = ""; $("so").textContent = "";
+    api("/business", {method: "PATCH", body: {name: $("sn").value, googleReviewUrl: $("sg").value}}).then(function(d){
+      me.business = d.business; $("biz").textContent = d.business.name; $("ss").disabled = false; $("so").textContent = "Saved.";
+    }).catch(function(e){ $("ss").disabled = false; $("se").textContent = e.message; });
+  };
+  $("lo").onclick = logout;
+}
+boot();
+</script>
+</body>
+</html>
